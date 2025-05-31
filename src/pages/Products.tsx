@@ -48,7 +48,7 @@ const Products = () => {
           { value: "all", label: "All Categories" }
         ];
         
-        // Handle the new API response format
+        // Handle if response.data is an array of objects or strings
         if (Array.isArray(response.data)) {
           response.data.forEach((cat: any) => {
             if (typeof cat === 'string') {
@@ -83,7 +83,7 @@ const Products = () => {
         console.log('Units response:', response.data);
         const unitsList: any[] = [];
         
-        // Handle the new API response format
+        // Handle if response.data is an array of objects or strings
         if (Array.isArray(response.data)) {
           response.data.forEach((unit: any) => {
             if (typeof unit === 'string') {
