@@ -1,4 +1,3 @@
-
 const BASE_URL = 'https://zaidawn.site/wp-json/ims/v1';
 
 // API response types
@@ -20,6 +19,98 @@ export interface PaginatedResponse<T> {
       hasPreviousPage: boolean;
     };
   };
+}
+
+// Enhanced Dashboard Data Types
+export interface EnhancedDashboardData {
+  financial: {
+    todayRevenue: number;
+    yesterdayRevenue: number;
+    monthRevenue: number;
+    lastMonthRevenue: number;
+    monthExpenses: number;
+    grossProfit: number;
+    netProfit: number;
+    profitMargin: number;
+    revenueGrowth: number;
+    monthlyGrowth: number;
+  };
+  sales: {
+    todaySales: number;
+    weekSales: number;
+    avgOrderValue: number;
+    pendingOrdersValue: number;
+    paymentMethods: Array<{
+      method: string;
+      count: number;
+      amount: number;
+    }>;
+    highValueSales: Array<{
+      orderNumber: string;
+      amount: number;
+      customer: string;
+      date: string;
+    }>;
+  };
+  inventory: {
+    totalInventoryValue: number;
+    retailInventoryValue: number;
+    lowStockItems: number;
+    outOfStockItems: number;
+    overstockItems: number;
+    fastMovingProducts: Array<{
+      name: string;
+      sold: number;
+      remaining: number;
+    }>;
+    deadStockValue: number;
+    inventoryTurnover: number;
+  };
+  customers: {
+    totalCustomers: number;
+    newCustomersThisMonth: number;
+    avgCustomerValue: number;
+    topCustomers: Array<{
+      name: string;
+      totalPurchases: number;
+      balance: number;
+    }>;
+    customerTypes: Array<{
+      type: string;
+      count: number;
+    }>;
+    totalReceivables: number;
+  };
+  performance: {
+    weeklyTrend: Array<{
+      week: string;
+      revenue: number;
+      orders: number;
+    }>;
+    dailyAvgRevenue: number;
+    dailyAvgOrders: number;
+    categoryPerformance: Array<{
+      category: string;
+      revenue: number;
+      unitsSold: number;
+    }>;
+  };
+  cashFlow: {
+    monthlyInflows: number;
+    monthlyOutflows: number;
+    netCashFlow: number;
+    recentPayments: Array<{
+      customer: string;
+      amount: number;
+      date: string;
+    }>;
+  };
+  alerts: Array<{
+    type: string;
+    title: string;
+    message: string;
+    action: string;
+  }>;
 }
 
 // Generic API request function
@@ -53,6 +144,7 @@ const apiRequest = async <T>(
 // Dashboard API
 export const dashboardApi = {
   getStats: () => apiRequest<ApiResponse<any>>('/dashboard/stats'),
+  getEnhancedStats: () => apiRequest<ApiResponse<EnhancedDashboardData>>('/dashboard/enhanced-stats'),
 };
 
 // Products API
