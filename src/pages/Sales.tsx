@@ -373,7 +373,7 @@ const NewSaleDialog = ({
       setFormData(prevFormData => ({
         ...prevFormData,
         items: prevFormData.items.map(item => {
-          const product = products.find(p => p.id.toString() === item.productId);
+          const product = products.find(p => p.id === item.productId);
           return {
             ...item,
             price: product?.price || 0
@@ -400,7 +400,7 @@ const NewSaleDialog = ({
     const newItems = [...formData.items];
     
     if (field === 'productId') {
-      const product = products.find(p => p.id.toString() === value);
+      const product = products.find(p => p.id === value);
       newItems[index] = {
         ...newItems[index],
         productId: value,
@@ -416,17 +416,17 @@ const NewSaleDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const customer = customers.find(c => c.id.toString() === formData.customerId);
+    const customer = customers.find(c => c.id === formData.customerId);
     const submitData = {
       ...formData,
       customerName: customer?.name || "Unknown Customer",
       items: formData.items.map(item => {
-        const product = products.find(p => p.id.toString() === item.productId);
+        const product = products.find(p => p.id === item.productId);
         return {
           ...item,
           productName: product?.name || "Unknown Product",
-          price: parseFloat(item.price.toString()),
-          quantity: parseInt(item.quantity.toString())
+          price: parseFloat(item.price),
+          quantity: parseInt(item.quantity)
         };
       })
     };
@@ -447,7 +447,7 @@ const NewSaleDialog = ({
             </SelectTrigger>
             <SelectContent>
               {customers.map((customer) => (
-                <SelectItem key={customer.id} value={customer.id.toString()}>{customer.name}</SelectItem>
+                <SelectItem key={customer.id} value={customer.id}>{customer.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -468,7 +468,7 @@ const NewSaleDialog = ({
                   </SelectTrigger>
                   <SelectContent>
                     {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id.toString()}>{product.name}</SelectItem>
+                      <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
