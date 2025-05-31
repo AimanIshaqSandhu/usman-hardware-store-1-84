@@ -191,6 +191,50 @@ const Inventory = () => {
     }
   };
 
+  const handleEditProduct = async (formData: any) => {
+    if (!selectedProduct) return;
+
+    try {
+      const response = await productsApi.update(selectedProduct.productId || selectedProduct.id, formData);
+      if (response.success) {
+        setIsEditDialogOpen(false);
+        setSelectedProduct(null);
+        fetchInventory();
+        toast({
+          title: "Product Updated",
+          description: "Product has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string | number) => {
+    try {
+      const response = await productsApi.delete(productId);
+      if (response.success) {
+        fetchInventory();
+        toast({
+          title: "Product Deleted",
+          description: "Product has been deleted successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredInventory = inventory.filter(item => {
     if (!item) return false;
     
