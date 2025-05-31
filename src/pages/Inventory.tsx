@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +50,7 @@ const Inventory = () => {
       setLoading(true);
       const params: any = {};
       
+      if (searchTerm) params.search = searchTerm;
       if (categoryFilter !== 'all') params.category = categoryFilter;
       if (statusFilter === 'low') params.lowStock = true;
       if (statusFilter === 'out') params.outOfStock = true;
@@ -170,7 +170,7 @@ const Inventory = () => {
     if (!selectedProduct) return;
 
     try {
-      const response = await productsApi.adjustStock(selectedProduct.productId, formData);
+      const response = await productsApi.adjustStock(selectedProduct.productId || selectedProduct.id, formData);
       if (response.success) {
         setIsStockAdjustmentOpen(false);
         setSelectedProduct(null);
@@ -191,58 +191,21 @@ const Inventory = () => {
     }
   };
 
-  const handleEditProduct = async (formData: any) => {
-    if (!selectedProduct) return;
-
-    try {
-      const response = await productsApi.update(selectedProduct.productId, formData);
-      if (response.success) {
-        setIsEditDialogOpen(false);
-        setSelectedProduct(null);
-        fetchInventory();
-        toast({
-          title: "Product Updated",
-          description: "Product has been updated successfully.",
-        });
-      }
-    } catch (error) {
-      console.error('Failed to update product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update product",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteProduct = async (productId: number) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    
-    try {
-      const response = await productsApi.delete(productId);
-      if (response.success) {
-        fetchInventory();
-        toast({
-          title: "Product Deleted",
-          description: "Product has been removed from inventory.",
-        });
-      }
-    } catch (error) {
-      console.error('Failed to delete product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete product",
-        variant: "destructive"
-      });
-    }
-  };
-
   const filteredInventory = inventory.filter(item => {
     if (!item) return false;
     
-    const matchesSearch = item.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = searchTerm === "" || 
+                         item.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.sku?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    
+    const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+    
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'low' && (item.currentStock || 0) <= (item.minStock || 0) && (item.currentStock || 0) > 0) ||
+                         (statusFilter === 'out' && (item.currentStock || 0) === 0);
+    
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const getStockStatus = (currentStock: number, minStock: number) => {
