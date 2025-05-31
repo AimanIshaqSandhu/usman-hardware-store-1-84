@@ -32,7 +32,8 @@ import {
   Cell,
   AreaChart,
   Area,
-  ComposedChart
+  ComposedChart,
+  Pie
 } from "recharts";
 import { dashboardApi, EnhancedDashboardData } from "@/services/api";
 
@@ -133,16 +134,16 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Today's Revenue</p>
                     <p className="text-2xl font-bold text-primary">
-                      {formatCurrency(dashboardData.financial.todayRevenue)}
+                      {formatCurrency(dashboardData?.financial?.todayRevenue || 0)}
                     </p>
                     <div className="flex items-center gap-1 text-sm">
-                      {dashboardData.financial.revenueGrowth >= 0 ? (
+                      {(dashboardData?.financial?.revenueGrowth || 0) >= 0 ? (
                         <ArrowUpIcon className="h-4 w-4 text-green-500" />
                       ) : (
                         <ArrowDownIcon className="h-4 w-4 text-red-500" />
                       )}
-                      <span className={dashboardData.financial.revenueGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                        {formatPercentage(Math.abs(dashboardData.financial.revenueGrowth))}
+                      <span className={(dashboardData?.financial?.revenueGrowth || 0) >= 0 ? "text-green-500" : "text-red-500"}>
+                        {formatPercentage(Math.abs(dashboardData?.financial?.revenueGrowth || 0))}
                       </span>
                     </div>
                   </div>
@@ -157,10 +158,10 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Today's Sales</p>
                     <p className="text-2xl font-bold text-blue-600">
-                      {dashboardData.sales.todaySales}
+                      {dashboardData?.sales?.todaySales || 0}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Avg: {formatCurrency(dashboardData.sales.avgOrderValue)}
+                      Avg: {formatCurrency(dashboardData?.sales?.avgOrderValue || 0)}
                     </p>
                   </div>
                 </div>
@@ -174,10 +175,10 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Net Profit</p>
                     <p className="text-2xl font-bold text-green-600">
-                      {formatCurrency(dashboardData.financial.netProfit)}
+                      {formatCurrency(dashboardData?.financial?.netProfit || 0)}
                     </p>
                     <p className="text-sm text-green-600">
-                      Margin: {formatPercentage(dashboardData.financial.profitMargin)}
+                      Margin: {formatPercentage(dashboardData?.financial?.profitMargin || 0)}
                     </p>
                   </div>
                 </div>
@@ -191,10 +192,10 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Total Customers</p>
                     <p className="text-2xl font-bold text-purple-600">
-                      {dashboardData.customers.totalCustomers}
+                      {dashboardData?.customers?.totalCustomers || 0}
                     </p>
                     <p className="text-sm text-purple-600">
-                      New: {dashboardData.customers.newCustomersThisMonth}
+                      New: {dashboardData?.customers?.newCustomersThisMonth || 0}
                     </p>
                   </div>
                 </div>
@@ -213,7 +214,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={dashboardData.performance.weeklyTrend}>
+                  <AreaChart data={dashboardData?.performance?.weeklyTrend || []}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis dataKey="week" className="text-muted-foreground" />
                     <YAxis className="text-muted-foreground" />
@@ -248,7 +249,7 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsPieChart>
                     <Pie
-                      data={dashboardData.performance.categoryPerformance}
+                      data={dashboardData?.performance?.categoryPerformance || []}
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
@@ -256,7 +257,7 @@ const Dashboard = () => {
                       nameKey="category"
                       label={({ category, revenue }) => `${category}: ${formatCurrency(revenue)}`}
                     >
-                      {dashboardData.performance.categoryPerformance.map((entry, index) => (
+                      {(dashboardData?.performance?.categoryPerformance || []).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -277,16 +278,16 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-primary">
-                  {formatCurrency(dashboardData.financial.monthRevenue)}
+                  {formatCurrency(dashboardData?.financial?.monthRevenue || 0)}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  {dashboardData.financial.monthlyGrowth >= 0 ? (
+                  {(dashboardData?.financial?.monthlyGrowth || 0) >= 0 ? (
                     <ArrowUpIcon className="h-4 w-4 text-green-500" />
                   ) : (
                     <ArrowDownIcon className="h-4 w-4 text-red-500" />
                   )}
-                  <span className={dashboardData.financial.monthlyGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                    {formatPercentage(Math.abs(dashboardData.financial.monthlyGrowth))} vs last month
+                  <span className={(dashboardData?.financial?.monthlyGrowth || 0) >= 0 ? "text-green-500" : "text-red-500"}>
+                    {formatPercentage(Math.abs(dashboardData?.financial?.monthlyGrowth || 0))} vs last month
                   </span>
                 </div>
               </CardContent>
@@ -298,10 +299,10 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
-                  {formatCurrency(dashboardData.financial.grossProfit)}
+                  {formatCurrency(dashboardData?.financial?.grossProfit || 0)}
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Expenses: {formatCurrency(dashboardData.financial.monthExpenses)}
+                  Expenses: {formatCurrency(dashboardData?.financial?.monthExpenses || 0)}
                 </p>
               </CardContent>
             </Card>
@@ -312,14 +313,14 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-blue-600">
-                  {formatCurrency(dashboardData.cashFlow.netCashFlow)}
+                  {formatCurrency(dashboardData?.cashFlow?.netCashFlow || 0)}
                 </div>
                 <div className="space-y-1 mt-2">
                   <p className="text-sm text-green-600">
-                    Inflows: {formatCurrency(dashboardData.cashFlow.monthlyInflows)}
+                    Inflows: {formatCurrency(dashboardData?.cashFlow?.monthlyInflows || 0)}
                   </p>
                   <p className="text-sm text-red-600">
-                    Outflows: {formatCurrency(dashboardData.cashFlow.monthlyOutflows)}
+                    Outflows: {formatCurrency(dashboardData?.cashFlow?.monthlyOutflows || 0)}
                   </p>
                 </div>
               </CardContent>
@@ -333,7 +334,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {dashboardData.cashFlow.recentPayments.map((payment, index) => (
+                {(dashboardData?.cashFlow?.recentPayments || []).map((payment, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
                       <p className="font-medium text-foreground">{payment.customer}</p>
@@ -357,7 +358,7 @@ const Dashboard = () => {
                   <Activity className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Week Sales</p>
-                    <p className="text-2xl font-bold">{dashboardData.sales.weekSales}</p>
+                    <p className="text-2xl font-bold">{dashboardData?.sales?.weekSales || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -369,7 +370,7 @@ const Dashboard = () => {
                   <CreditCard className="h-8 w-8 text-blue-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Avg Order Value</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.sales.avgOrderValue)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.sales?.avgOrderValue || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -381,7 +382,7 @@ const Dashboard = () => {
                   <Package className="h-8 w-8 text-orange-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Pending Orders</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.sales.pendingOrdersValue)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.sales?.pendingOrdersValue || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -393,7 +394,7 @@ const Dashboard = () => {
                   <TrendingUp className="h-8 w-8 text-green-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Daily Avg Revenue</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.performance.dailyAvgRevenue)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.performance?.dailyAvgRevenue || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -407,7 +408,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={dashboardData.sales.paymentMethods}>
+                  <BarChart data={dashboardData?.sales?.paymentMethods || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="method" />
                     <YAxis />
@@ -424,7 +425,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {dashboardData.sales.highValueSales.map((sale, index) => (
+                  {(dashboardData?.sales?.highValueSales || []).map((sale, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-medium text-foreground">{sale.orderNumber}</p>
@@ -449,7 +450,7 @@ const Dashboard = () => {
                   <Package className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Value</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.inventory.totalInventoryValue)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.inventory?.totalInventoryValue || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -461,7 +462,7 @@ const Dashboard = () => {
                   <AlertTriangle className="h-8 w-8 text-red-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Low Stock Items</p>
-                    <p className="text-2xl font-bold text-red-600">{dashboardData.inventory.lowStockItems}</p>
+                    <p className="text-2xl font-bold text-red-600">{dashboardData?.inventory?.lowStockItems || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -473,7 +474,7 @@ const Dashboard = () => {
                   <Activity className="h-8 w-8 text-green-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Turnover Rate</p>
-                    <p className="text-2xl font-bold">{dashboardData.inventory.inventoryTurnover.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">{(dashboardData?.inventory?.inventoryTurnover || 0).toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -485,7 +486,7 @@ const Dashboard = () => {
                   <Package className="h-8 w-8 text-orange-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Dead Stock</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.inventory.deadStockValue)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.inventory?.deadStockValue || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -498,7 +499,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {dashboardData.inventory.fastMovingProducts.map((product, index) => (
+                {(dashboardData?.inventory?.fastMovingProducts || []).map((product, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div>
                       <p className="font-medium text-foreground">{product.name}</p>
@@ -522,7 +523,7 @@ const Dashboard = () => {
                   <Users className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Customers</p>
-                    <p className="text-2xl font-bold">{dashboardData.customers.totalCustomers}</p>
+                    <p className="text-2xl font-bold">{dashboardData?.customers?.totalCustomers || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -534,7 +535,7 @@ const Dashboard = () => {
                   <TrendingUp className="h-8 w-8 text-green-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Avg Customer Value</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.customers.avgCustomerValue)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.customers?.avgCustomerValue || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -546,7 +547,7 @@ const Dashboard = () => {
                   <CreditCard className="h-8 w-8 text-orange-500" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Receivables</p>
-                    <p className="text-2xl font-bold">{formatCurrency(dashboardData.customers.totalReceivables)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(dashboardData?.customers?.totalReceivables || 0)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -562,7 +563,7 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height={250}>
                   <RechartsPieChart>
                     <Pie
-                      data={dashboardData.customers.customerTypes}
+                      data={dashboardData?.customers?.customerTypes || []}
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
@@ -570,7 +571,7 @@ const Dashboard = () => {
                       nameKey="type"
                       label={({ type, count }) => `${type}: ${count}`}
                     >
-                      {dashboardData.customers.customerTypes.map((entry, index) => (
+                      {(dashboardData?.customers?.customerTypes || []).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -586,7 +587,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {dashboardData.customers.topCustomers.map((customer, index) => (
+                  {(dashboardData?.customers?.topCustomers || []).map((customer, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-medium text-foreground">{customer.name}</p>
