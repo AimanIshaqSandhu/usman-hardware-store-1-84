@@ -19,14 +19,8 @@ const Inventory = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [inventory, setInventory] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([
-    { value: "all", label: "All Categories" },
-    { value: "hinges", label: "Hinges & Hardware" }
-  ]);
-  const [units, setUnits] = useState<any[]>([
-    { value: "pieces", label: "Pieces" },
-    { value: "kg", label: "Kilograms" }
-  ]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [units, setUnits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -43,6 +37,10 @@ const Inventory = () => {
     fetchMovements();
     fetchCategories();
     fetchUnits();
+  }, []);
+
+  useEffect(() => {
+    fetchInventory();
   }, [searchTerm, categoryFilter, statusFilter]);
 
   const fetchInventory = async () => {
@@ -61,18 +59,15 @@ const Inventory = () => {
         const inventoryData = response.data?.inventory || response.data || [];
         console.log('Inventory response:', response.data);
         
-        // Ensure we're working with an array
         const inventoryArray = Array.isArray(inventoryData) ? inventoryData : [];
         setInventory(inventoryArray);
         
-        // Update summary if available
         if (response.data?.summary) {
           setSummary(response.data.summary);
         } else {
-          // Calculate basic summary from inventory data
           const totalProducts = inventoryArray.length;
           const totalValue = inventoryArray.reduce((sum, item) => sum + (item.value || 0), 0);
-          const lowStockItems = inventoryArray.filter(item => (item.currentStock || 0) <= (item.minStock || 0)).length;
+          const lowStockItems = inventoryArray.filter(item => (item.currentStock || 0) <= (item.minStock || 0) && (item.currentStock || 0) > 0).length;
           const outOfStockItems = inventoryArray.filter(item => (item.currentStock || 0) === 0).length;
           
           setSummary({
@@ -117,22 +112,21 @@ const Inventory = () => {
           { value: "all", label: "All Categories" }
         ];
         
-        // Handle if response.data is an array of objects or strings
-        if (Array.isArray(response.data)) {
-          response.data.forEach((cat: any) => {
-            if (typeof cat === 'string') {
-              categoryList.push({ value: cat, label: cat });
-            } else if (cat && typeof cat === 'object' && cat.name) {
-              categoryList.push({ value: cat.name, label: cat.name });
-            }
-          });
-        }
+        const categories = Array.isArray(response.data) ? response.data : [];
+        categories.forEach((cat: any) => {
+          if (typeof cat === 'string') {
+            categoryList.push({ value: cat, label: cat });
+          } else if (cat && typeof cat === 'object' && (cat.name || cat.id)) {
+            const name = cat.name || cat.id;
+            categoryList.push({ value: name, label: name });
+          }
+        });
         
         setCategories(categoryList);
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
-      // Keep default categories on error
+      setCategories([{ value: "all", label: "All Categories" }]);
     }
   };
 
@@ -142,27 +136,33 @@ const Inventory = () => {
       if (response.success && response.data) {
         const unitsList: any[] = [];
         
-        // Handle if response.data is an array of objects or strings
-        if (Array.isArray(response.data)) {
-          response.data.forEach((unit: any) => {
-            if (typeof unit === 'string') {
-              unitsList.push({ value: unit, label: unit });
-            } else if (unit && typeof unit === 'object') {
-              unitsList.push({ 
-                value: unit.name || unit.value, 
-                label: unit.label || unit.name || unit.value 
-              });
-            }
-          });
-        }
+        const units = Array.isArray(response.data) ? response.data : [];
+        units.forEach((unit: any) => {
+          if (typeof unit === 'string') {
+            unitsList.push({ value: unit, label: unit });
+          } else if (unit && typeof unit === 'object') {
+            unitsList.push({ 
+              value: unit.name || unit.value, 
+              label: unit.label || unit.name || unit.value 
+            });
+          }
+        });
         
         if (unitsList.length > 0) {
           setUnits(unitsList);
+        } else {
+          setUnits([
+            { value: "pieces", label: "Pieces" },
+            { value: "kg", label: "Kilograms" }
+          ]);
         }
       }
     } catch (error) {
       console.error('Failed to fetch units:', error);
-      // Keep default units on error
+      setUnits([
+        { value: "pieces", label: "Pieces" },
+        { value: "kg", label: "Kilograms" }
+      ]);
     }
   };
 
@@ -217,7 +217,7 @@ const Inventory = () => {
 
   const handleDeleteProduct = async (productId: string | number) => {
     try {
-      const response = await productsApi.delete(productId);
+      const response = await productsApi.delete(Number(productId));
       if (response.success) {
         fetchInventory();
         toast({
