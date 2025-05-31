@@ -146,16 +146,14 @@ const Sales = () => {
     try {
       const saleData = {
         customerId: selectedCustomer?.id || null,
-        customerName: selectedCustomer?.name || "Walk-in Customer",
         items: cart.map(item => ({
           productId: item.productId,
-          productName: item.name,
           quantity: item.quantity,
-          price: item.price
+          unitPrice: item.price
         })),
-        date: new Date().toISOString().slice(0, 10),
-        status: "completed",
-        paymentMethod: "cash"
+        discount: 0,
+        paymentMethod: "cash",
+        notes: selectedCustomer ? `Sale to ${selectedCustomer.name}` : "Walk-in customer sale"
       };
 
       const response = await salesApi.create(saleData);
@@ -198,24 +196,26 @@ const Sales = () => {
     <div className="flex h-screen bg-gray-50">
       {/* Main POS Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b p-4">
+        {/* Clean Header */}
+        <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <div className="flex items-center gap-2">
-                <Package className="h-8 w-8 text-blue-600" />
+              <div className="flex items-center gap-3">
+                <Package className="h-6 w-6 text-blue-600" />
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Sales System (POS)</h1>
-                  <p className="text-sm text-gray-600">Usman Hardware - Hafizabad</p>
+                  <h1 className="text-lg font-semibold text-gray-900">Sales System (POS)</h1>
+                  <p className="text-sm text-gray-500">Usman Hardware - Hafizabad</p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">{cart.length} items in cart</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                {cart.length} items in cart
+              </span>
               <Dialog open={isTodaysOrdersOpen} onOpenChange={setIsTodaysOrdersOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                     Today's Orders
                   </Button>
                 </DialogTrigger>
@@ -238,7 +238,9 @@ const Sales = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-green-600">PKR {order.total?.toLocaleString()}</p>
-                                <Badge variant="secondary">{order.status}</Badge>
+                                <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
+                                  {order.status}
+                                </Badge>
                               </div>
                             </div>
                           </CardContent>
@@ -253,55 +255,63 @@ const Sales = () => {
         </div>
 
         {/* Products Section */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 overflow-auto">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                 <Package className="h-5 w-5 text-blue-600" />
                 Products
-                <Badge variant="outline">{filteredProducts.length} pinned</Badge>
+                <Badge variant="outline" className="ml-2">{filteredProducts.length} items</Badge>
               </h2>
             </div>
             
-            <div className="relative mb-4">
+            <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search products by name or SKU..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-12"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {/* Products List - One per line */}
+          <div className="space-y-3">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="hover:shadow-md transition-shadow">
+              <Card key={product.id} className="hover:shadow-md transition-all duration-200 border border-gray-200">
                 <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <h3 className="font-medium text-gray-900">{product.name}</h3>
-                    <p className="text-xs text-gray-500">SKU: {product.sku}</p>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-lg font-bold text-blue-600">PKR {product.price}</p>
-                        <p className="text-xs text-gray-500">{product.stock} {product.unit}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          onClick={() => addToCart(product)}
-                          className="bg-blue-600 hover:bg-blue-700"
-                          disabled={product.stock <= 0}
-                        >
-                          Add
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => addToCart(product)}
-                          disabled={product.stock <= 0}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 text-lg">{product.name}</h3>
+                          <p className="text-sm text-gray-500 mt-1">SKU: {product.sku}</p>
+                          <div className="flex items-center gap-4 mt-2">
+                            <div className="text-xl font-bold text-blue-600">PKR {product.price.toLocaleString()}</div>
+                            <div className="text-sm text-gray-500">
+                              Stock: {product.stock} {product.unit}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          <Button
+                            onClick={() => addToCart(product)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 h-9"
+                            disabled={product.stock <= 0}
+                          >
+                            Add
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addToCart(product)}
+                            disabled={product.stock <= 0}
+                            className="h-9 w-9 p-0"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -313,9 +323,9 @@ const Sales = () => {
       </div>
 
       {/* Cart Sidebar */}
-      <div className="w-80 bg-white border-l flex flex-col">
+      <div className="w-96 bg-white border-l shadow-lg flex flex-col">
         {/* Customer Section */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b bg-gray-50">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-medium text-gray-900 flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -324,30 +334,31 @@ const Sales = () => {
           </div>
           
           {selectedCustomer ? (
-            <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-blue-900">{selectedCustomer.name}</p>
-                  <p className="text-xs text-blue-700">{selectedCustomer.phone}</p>
+                  <p className="text-sm text-blue-700">{selectedCustomer.phone}</p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedCustomer(null)}
+                  className="h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Cash Sale (Walk-in Customer)</p>
+            <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+              <p className="text-sm text-green-800 mb-3 font-medium">Cash Sale (Walk-in Customer)</p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsCustomerDialogOpen(true)}
-                  className="flex-1"
+                  className="flex-1 text-xs"
                 >
                   Search Customer
                 </Button>
@@ -355,6 +366,7 @@ const Sales = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsQuickCustomerOpen(true)}
+                  className="px-2"
                 >
                   <UserPlus className="h-4 w-4" />
                 </Button>
@@ -364,7 +376,7 @@ const Sales = () => {
         </div>
 
         {/* Cart Items */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 overflow-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900 flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
@@ -373,23 +385,25 @@ const Sales = () => {
           </div>
 
           {cart.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+            <div className="text-center py-12">
+              <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500">Cart is empty</p>
+              <p className="text-sm text-gray-400">Add products to start selling</p>
             </div>
           ) : (
             <div className="space-y-3">
               {cart.map((item) => (
-                <div key={item.productId} className="bg-gray-50 p-3 rounded-lg">
-                  <div className="flex items-start justify-between mb-2">
+                <div key={item.productId} className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{item.name}</p>
-                      <p className="text-xs text-gray-500">PKR {item.price} / {item.unit}</p>
+                      <p className="text-xs text-gray-500">PKR {item.price.toLocaleString()} / {item.unit}</p>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFromCart(item.productId)}
+                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -400,19 +414,21 @@ const Sales = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => updateCartQuantity(item.productId, item.quantity - 1)}
+                        className="h-8 w-8 p-0"
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-8 text-center text-sm">{item.quantity}</span>
+                      <span className="w-12 text-center text-sm font-medium">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => updateCartQuantity(item.productId, item.quantity + 1)}
+                        className="h-8 w-8 p-0"
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <p className="font-medium text-blue-600">
+                    <p className="font-semibold text-blue-600">
                       PKR {(item.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
@@ -424,24 +440,26 @@ const Sales = () => {
 
         {/* Checkout Section */}
         {cart.length > 0 && (
-          <div className="p-4 border-t bg-gray-50">
-            <div className="space-y-2 mb-4">
+          <div className="p-4 border-t bg-white">
+            <div className="space-y-3 mb-4">
               <div className="flex justify-between text-sm">
-                <span>Subtotal:</span>
-                <span>PKR {getCartTotal().toLocaleString()}</span>
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="font-medium">PKR {getCartTotal().toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Tax (10%):</span>
-                <span>PKR {(getCartTotal() * 0.1).toLocaleString()}</span>
+                <span className="text-gray-600">Tax (10%):</span>
+                <span className="font-medium">PKR {(getCartTotal() * 0.1).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg border-t pt-2">
-                <span>Total:</span>
-                <span className="text-green-600">PKR {(getCartTotal() * 1.1).toLocaleString()}</span>
+              <div className="border-t pt-3">
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total:</span>
+                  <span className="text-green-600">PKR {(getCartTotal() * 1.1).toLocaleString()}</span>
+                </div>
               </div>
             </div>
             <Button
               onClick={handleCheckout}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-medium"
               size="lg"
             >
               Complete Sale
@@ -465,7 +483,7 @@ const Sales = () => {
               {customers.map((customer) => (
                 <div
                   key={customer.id}
-                  className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => {
                     setSelectedCustomer(customer);
                     setIsCustomerDialogOpen(false);
